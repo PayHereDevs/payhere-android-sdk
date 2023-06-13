@@ -120,10 +120,10 @@ public class PaymentDetailFragment extends Fragment implements PHMainActivity.On
 
         progressFrame = view.findViewById(R.id.ph_progress_frame);
         webView = view.findViewById(R.id.ph_webview);
-        webView.setBackgroundColor(getResources().getColor(R.color.white));
         progressImage = (ImageView)view.findViewById(R.id.progress_view);
-
+        webView.setBackgroundColor(getResources().getColor(R.color.white));
         ProgressBar progressBar = view.findViewById(R.id.progressBar);
+        webView.setVisibility(View.INVISIBLE);
 
         progressBar.getIndeterminateDrawable().setColorFilter(ContextCompat.getColor(view.getContext(), R.color.progress_color), android.graphics.PorterDuff.Mode.MULTIPLY);
 
@@ -216,6 +216,7 @@ public class PaymentDetailFragment extends Fragment implements PHMainActivity.On
         webView.getSettings().setLoadWithOverviewMode(true);
 
         webView.getSettings().setAppCacheEnabled(PHMainActivity.cacheEnabled);
+
         webView.getSettings().setSaveFormData(PHMainActivity.cacheEnabled);
         webView.getSettings().setSavePassword(PHMainActivity.cacheEnabled);
         webView.getSettings().setCacheMode(PHMainActivity.cacheEnabled ? WebSettings.LOAD_CACHE_ELSE_NETWORK : WebSettings.LOAD_NO_CACHE);
@@ -250,10 +251,12 @@ public class PaymentDetailFragment extends Fragment implements PHMainActivity.On
 //                    orderKey = uri.getQueryParameter("order");
                     checkComplete(false, true);
                 }
+                webView.setVisibility(View.VISIBLE);
             }
 
             @Override
             public void onPageFinished(WebView view, final String url) {
+                webView.setVisibility(View.VISIBLE);
 //                view.loadUrl("javascript:window.HtmlViewer.showHTML" +
 //                        "('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>');" +
 //                        "javascript:(function() { " +
