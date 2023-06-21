@@ -317,7 +317,7 @@ public class PaymentDetailFragment extends Fragment implements PHMainActivity.On
     private int getDeviceSpecHeight(int height) {
 
         int deviceHeight = getDeviceheight();
-        int maxHeight = (int) (deviceHeight * 0.9);
+        int maxHeight = (int) (deviceHeight * 0.9); // 0.9
         if (height == 400 && isCardSave)
             height = height * deviceHeight / 800;
         int viewHeight = initHeight * height / 400;

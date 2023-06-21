@@ -157,10 +157,14 @@ public class PHMainActivity extends PayHereBaseActivity {
         //Set Pay request base URL (SandBox or Live) per merchant ID
         String baseUrl = PHConfigs.LIVE_URL;
         if (request != null && request.getMerchantId() != null && !request.getMerchantId().equals("")) {
-            if (request.getMerchantId().toCharArray()[0] == '1')
+            if (request.getMerchantId().toCharArray()[0] == '1') {
+                bottomSheet.findViewById(R.id.debug_value).setVisibility(View.VISIBLE);
                 baseUrl = PHConfigs.SANDBOX_URL;
-            else if (request.getMerchantId().toCharArray()[0] == '2')
+            }
+            else if (request.getMerchantId().toCharArray()[0] == '2') {
+                bottomSheet.findViewById(R.id.debug_value).setVisibility(View.GONE);
                 baseUrl = PHConfigs.LIVE_URL;
+            }
             else if (request.getMerchantId().toCharArray()[0] == '0')
                 baseUrl = PHConfigs.LOCAL_URL;
         }
@@ -205,6 +209,10 @@ public class PHMainActivity extends PayHereBaseActivity {
                 if(isSaveCard && view == VIEW_DETAILS && i == BottomSheetBehavior.STATE_COLLAPSED)
                     setUserCanceledError();
                 else if(isHelapayPayment && view == VIEW_DETAILS && i == BottomSheetBehavior.STATE_COLLAPSED){
+                    setUserCanceledError();
+                }
+                else if(view == VIEW_DETAILS && i == BottomSheetBehavior.STATE_COLLAPSED)
+                {
                     setUserCanceledError();
                 }
                 if (i == BottomSheetBehavior.STATE_SETTLING && (PHMainActivity.this.view != VIEW_DETAILS || isSaveCard)) {

@@ -94,7 +94,8 @@ MethodAdapter.OnPaymentMethodClick{
 
         NestedScrollView scrollView = view.findViewById(R.id.scroller_view);
         ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) scrollView.getLayoutParams();
-        params.height =(int) (screenWith * 0.6);
+        params.height =(int) (screenWith * 0.5);
+
 
         scrollView.setLayoutParams(params);
 
@@ -348,6 +349,8 @@ MethodAdapter.OnPaymentMethodClick{
             view.findViewById(R.id.other_payment_list).setVisibility(View.VISIBLE);
             otherMethodAdapter.notifyDataSetChanged();
         }
+
+
     }
 
     private void createMethodAdapters(){
