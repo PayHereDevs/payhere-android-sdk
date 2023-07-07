@@ -15,3 +15,8 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+-keep public class lk.payhere.androidsdk.model*{
+     *;
+}
+
+-keep public class lk.payhere.androidsdk.PHConstants
