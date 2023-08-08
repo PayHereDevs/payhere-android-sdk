@@ -214,18 +214,26 @@ public class PHMainActivity extends PayHereBaseActivity {
                 else if(view == VIEW_DETAILS && i == BottomSheetBehavior.STATE_COLLAPSED)
                 {
                     setUserCanceledError();
-                }
-                if (i == BottomSheetBehavior.STATE_SETTLING && (PHMainActivity.this.view != VIEW_DETAILS || isSaveCard)) {
-                    if (prevState != BottomSheetBehavior.STATE_COLLAPSED) {
-                        int colorFrom = getResources().getColor(R.color.bottom_sheet_back);
-                        int colorTo = getResources().getColor(android.R.color.transparent);
 
-                        colorFadeAnimation(backView, colorFrom, colorTo, PHMainActivity.this.view == VIEW_METHOD || PHMainActivity.this.view == VIEW_RESULT);
-                    } else {
-                        int colorFrom = getResources().getColor(android.R.color.transparent);
-                        int colorTo = getResources().getColor(R.color.bottom_sheet_back);
-                        colorFadeAnimation(backView, colorFrom, colorTo, false);
+                }
+                else if(view == VIEW_METHOD && i == BottomSheetBehavior.STATE_COLLAPSED){
+                    setUserCanceledError();
+                }
+                else{
+
+                    if (i == BottomSheetBehavior.STATE_SETTLING && (PHMainActivity.this.view != VIEW_DETAILS || isSaveCard)) {
+                        if (prevState != BottomSheetBehavior.STATE_COLLAPSED) {
+                            int colorFrom = getResources().getColor(R.color.bottom_sheet_back);
+                            int colorTo = getResources().getColor(android.R.color.transparent);
+
+                            colorFadeAnimation(backView, colorFrom, colorTo, PHMainActivity.this.view == VIEW_METHOD || PHMainActivity.this.view == VIEW_RESULT);
+                        } else {
+                            int colorFrom = getResources().getColor(android.R.color.transparent);
+                            int colorTo = getResources().getColor(R.color.bottom_sheet_back);
+                            colorFadeAnimation(backView, colorFrom, colorTo, false);
+                        }
                     }
+
                 }
 
                 prevState = i;
@@ -304,18 +312,29 @@ public class PHMainActivity extends PayHereBaseActivity {
     }
 
     private void onBackClicked() {
-        switch (view) {
-            case VIEW_METHOD:
-            case VIEW_RESULT:
-                sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                break;
-            case VIEW_DETAILS:
-                if (isSaveCard)
+        if(view == VIEW_METHOD || view == VIEW_RESULT){
+
+            sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        }
+        else{
+            if (isSaveCard)
                     sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                 else
                     setPayMethod();
-                break;
         }
+
+//        switch (view) {
+//            case VIEW_METHOD:
+//            case VIEW_RESULT:
+//                sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+//                break;
+//            case VIEW_DETAILS:
+//                if (isSaveCard)
+//                    sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+//                else
+//                    setPayMethod();
+//                break;
+//        }
     }
 
     public void setCloseBottomSheet(boolean val){
