@@ -6,12 +6,12 @@ def sdk_artifact_id = "androidsdk"
 def sdk_version = "3.0.11"
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 33
 
     defaultConfig {
 
         minSdkVersion 14
-        targetSdkVersion 31
+        targetSdkVersion 33
     }
     buildTypes {
         debug{
@@ -25,6 +25,7 @@ android {
             buildConfigField("String","SDK_VERSION_NAME","${defaultConfig.versionName}")
         }
     }
+    namespace 'lk.payhere.androidsdk'
 
 //    compileOptions {
 //        sourceCompatibility JavaVersion.VERSION_1_8

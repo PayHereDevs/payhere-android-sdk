@@ -32,7 +32,7 @@ public class PHConstants {
 
     public static final Locale DEFAULT_LOCALE = Locale.US;
 
-    public static final String PAYHERE_VERSION = BuildConfig.VERSION_NAME;
+    //public static final String PAYHERE_VERSION = BuildConfig.VERSION_NAME;
 
     public static final String URL_INIT_PAYMENT_V2 = "api/payment/v2/init";
 
