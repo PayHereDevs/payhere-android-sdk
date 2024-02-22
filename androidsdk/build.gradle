@@ -3,10 +3,10 @@ apply plugin: 'maven-publish'
 
 def sdk_group = "lk.payhere"
 def sdk_artifact_id = "androidsdk"
-def sdk_version = "3.0.11"
+def sdk_version = "3.0.13"
 
 android {
-    compileSdkVersion 33
+    compileSdk 33
 
     defaultConfig {
 
@@ -49,62 +49,75 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.13.0'
 }
 
-publishing {
-    repositories {
-        maven {
-            name = 'Local'
-            url = "file://${buildDir}/repo"
-        }
-        maven {
-            name = "Repsy"
-            url = uri("https://repo.repsy.io/mvn/payhere/payhere-mobilesdk-android")
-            credentials {
-                username = project.properties['repsy.user']
-                password = project.properties['repsy.password']
-            }
-        }
+//publishing {
+//    repositories {
 //        maven {
-//            name = "GitHubPackages"
-//            url = uri("https://maven.pkg.github.com/PayHereLK/payhere-mobilesdk-android")
+//            name = 'Local'
+//            url = "file://${buildDir}/repo"
+//        }
+//        maven {
+//            name = "Repsy"
+//            url = uri("https://repo.repsy.io/mvn/payhere/payhere-mobilesdk-android")
 //            credentials {
-//                username = project.properties['github.user']
-//                password = project.properties['github.token']
+//                username = project.properties['repsy.user']
+//                password = project.properties['repsy.password']
 //            }
 //        }
-    }
-    publications {
-        release(MavenPublication) {
-            groupId "$sdk_group"
-            artifactId "$sdk_artifact_id"
-            version "$sdk_version"
-            artifact("$buildDir/outputs/aar/androidsdk-release.aar")
+////        maven {
+////            name = "GitHubPackages"
+////            url = uri("https://maven.pkg.github.com/PayHereLK/payhere-mobilesdk-android")
+////            credentials {
+////                username = project.properties['github.user']
+////                password = project.properties['github.token']
+////            }
+////        }
+//    }
+//    publications {
+//        release(MavenPublication) {
+//            groupId "$sdk_group"
+//            artifactId "$sdk_artifact_id"
+//            version "$sdk_version"
+//            artifact("$buildDir/outputs/aar/androidsdk-release.aar")
+//
+//            pom.withXml {
+//                final dependenciesNode = asNode().appendNode('dependencies')
+//                ext.addDependency = { Dependency dep, String scope ->
+//                    if (dep.group == null || dep.version == null || dep.name == null || dep.name == "unspecified")
+//                        return
+//                    final dependencyNode = dependenciesNode.appendNode('dependency')
+//                    dependencyNode.appendNode('groupId', dep.group)
+//                    dependencyNode.appendNode('artifactId', dep.name)
+//                    dependencyNode.appendNode('version', dep.version)
+//                    dependencyNode.appendNode('scope', scope)
+//                    if (!dep.transitive) {
+//                        final exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
+//                        exclusionNode.appendNode('groupId', '*')
+//                        exclusionNode.appendNode('artifactId', '*')
+//                    } else if (!dep.properties.excludeRules.empty) {
+//                        final exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
+//                        dep.properties.excludeRules.each { ExcludeRule rule ->
+//                            exclusionNode.appendNode('groupId', rule.group ?: '*')
+//                            exclusionNode.appendNode('artifactId', rule.module ?: '*')
+//                        }
+//                    }
+//                }
+//                configurations.compile.getDependencies().each { dep -> addDependency(dep, "compile") }
+//                configurations.api.getDependencies().each { dep -> addDependency(dep, "compile") }
+//                configurations.implementation.getDependencies().each { dep -> addDependency(dep, "runtime") }
+//            }
+//        }
+//    }
 
-            pom.withXml {
-                final dependenciesNode = asNode().appendNode('dependencies')
-                ext.addDependency = { Dependency dep, String scope ->
-                    if (dep.group == null || dep.version == null || dep.name == null || dep.name == "unspecified")
-                        return
-                    final dependencyNode = dependenciesNode.appendNode('dependency')
-                    dependencyNode.appendNode('groupId', dep.group)
-                    dependencyNode.appendNode('artifactId', dep.name)
-                    dependencyNode.appendNode('version', dep.version)
-                    dependencyNode.appendNode('scope', scope)
-                    if (!dep.transitive) {
-                        final exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
-                        exclusionNode.appendNode('groupId', '*')
-                        exclusionNode.appendNode('artifactId', '*')
-                    } else if (!dep.properties.excludeRules.empty) {
-                        final exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
-                        dep.properties.excludeRules.each { ExcludeRule rule ->
-                            exclusionNode.appendNode('groupId', rule.group ?: '*')
-                            exclusionNode.appendNode('artifactId', rule.module ?: '*')
-                        }
-                    }
-                }
-                configurations.compile.getDependencies().each { dep -> addDependency(dep, "compile") }
-                configurations.api.getDependencies().each { dep -> addDependency(dep, "compile") }
-                configurations.implementation.getDependencies().each { dep -> addDependency(dep, "runtime") }
-            }
-        }
-    }
-}
+  afterEvaluate {
+      publishing {
+          publications {
+              release(MavenPublication){
+                  from components.release
+                  groupId "$sdk_group"
+                  artifactId "$sdk_artifact_id"
+                  version "$sdk_version"
+              }
+          }
+      }
+  }
+//}

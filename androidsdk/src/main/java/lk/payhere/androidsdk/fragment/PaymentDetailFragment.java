@@ -215,7 +215,7 @@ public class PaymentDetailFragment extends Fragment implements PHMainActivity.On
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setLoadWithOverviewMode(true);
 
-        webView.getSettings().setAppCacheEnabled(PHMainActivity.cacheEnabled);
+      //  webView.getSettings().setAppCacheEnabled(PHMainActivity.cacheEnabled);
 
         webView.getSettings().setSaveFormData(PHMainActivity.cacheEnabled);
         webView.getSettings().setSavePassword(PHMainActivity.cacheEnabled);
