@@ -20,7 +20,9 @@ import androidx.fragment.app.FragmentTransaction;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -51,11 +53,11 @@ public class PHMainActivity extends PayHereBaseActivity {
     private final int VIEW_RESULT = 3;
 
     //instance
-   // private View imgBack;
+    // private View imgBack;
     private BottomSheetBehavior sheetBehavior;
     private OnActivityAction listener;
     private Bundle bundle;
-   // private HashMap<String, PaymentMethodResponse.Data> methods;
+    // private HashMap<String, PaymentMethodResponse.Data> methods;
     private HashMap<String, NewInitResponse.PaymentMethod> methods;
     private PHResponse<StatusResponse> statusResponse;
 
@@ -65,6 +67,7 @@ public class PHMainActivity extends PayHereBaseActivity {
     private boolean isSaveCard = false;
     private int peekHeight = 0;
     private int prevState = BottomSheetBehavior.STATE_COLLAPSED;
+    private boolean isMinimize = false;
 
     //enable webview cache
     public static boolean cacheEnabled = false;
@@ -76,11 +79,13 @@ public class PHMainActivity extends PayHereBaseActivity {
     private boolean closeBottomSheet = true;
     private boolean isHelapayPayment = false;
 
+    private View titleBar ,backView;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-       int width =  Utils.screenHight(this);
+        int width = Utils.screenHight(this);
 
         if (!getIntent().hasExtra(PHConstants.INTENT_EXTRA_DATA)) {
             PHResponse response = new PHResponse(PHResponse.STATUS_ERROR_DATA, PHConstants.INTENT_EXTRA_DATA + " not found");
@@ -94,7 +99,7 @@ public class PHMainActivity extends PayHereBaseActivity {
             skipResult = getIntent().getBooleanExtra(PHConstants.INTENT_EXTRA_SKIP_RESULT, false);
         }
 
-        if(getIntent().hasExtra(PHConstants.INTENT_EXTRA_CACHE_ENABLE)){
+        if (getIntent().hasExtra(PHConstants.INTENT_EXTRA_CACHE_ENABLE)) {
             cacheEnabled = getIntent().getBooleanExtra(PHConstants.INTENT_EXTRA_CACHE_ENABLE, false);
         }
 
@@ -105,6 +110,7 @@ public class PHMainActivity extends PayHereBaseActivity {
             setTheme(R.style.phtransparent_windowTitle_fix);
             setContentView(R.layout.ph_activity_phmain);
         }
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         bottomSheet = findViewById(R.id.bottom_sheet);
 
@@ -112,15 +118,15 @@ public class PHMainActivity extends PayHereBaseActivity {
 
         sheetBehavior = BottomSheetBehavior.from(bottomSheet);
         sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-        sheetBehavior.setPeekHeight(peekHeight);
+        sheetBehavior.setHideable(false);
         WebViewBottomSheetbehaviour.scrollEnabled = true;
 
         Serializable data = getIntent().getSerializableExtra(PHConstants.INTENT_EXTRA_DATA);
         bundle = new Bundle();
         bundle.putSerializable(PHConstants.INTENT_EXTRA_DATA, data);
 
-      //  imgBack = findViewById(R.id.img_main_back);
-        final View titleBar = bottomSheet.findViewById(R.id.bottom_sheet_hedder);
+        //  imgBack = findViewById(R.id.img_main_back);
+        titleBar = bottomSheet.findViewById(R.id.bottom_sheet_hedder);
         txtTitle = findViewById(R.id.pay_with_text_title);
 
         titleBar.setOnTouchListener(new View.OnTouchListener() {
@@ -130,10 +136,10 @@ public class PHMainActivity extends PayHereBaseActivity {
                     if (sheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED)
                         sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                     else {
-                        if(isSaveCard)
-                            sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                        else
-                            onBackClicked();
+//                        if(isSaveCard)
+//                            sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+//                        else
+//                            onBackClicked();
 
                     }
                 }
@@ -146,9 +152,9 @@ public class PHMainActivity extends PayHereBaseActivity {
             InitRequest checkoutReq = (InitRequest) request;
             isSaveCard = !(checkoutReq.getDuration() == null || checkoutReq.getDuration().equals("") || checkoutReq.getRecurrence().equals(""));
         } else {
-             if(request instanceof InitPreapprovalRequest){
+            if (request instanceof InitPreapprovalRequest) {
                 request.setHoldOnCardEnabled(false);
-                Log.d(TAG,"hold on card not effect for pre approval request,If request is InitPreapprovalRequest always hold on card disabled");
+                Log.d(TAG, "hold on card not effect for pre approval request,If request is InitPreapprovalRequest always hold on card disabled");
             }
 
             isSaveCard = true;
@@ -160,12 +166,10 @@ public class PHMainActivity extends PayHereBaseActivity {
             if (request.getMerchantId().toCharArray()[0] == '1') {
                 bottomSheet.findViewById(R.id.debug_value).setVisibility(View.VISIBLE);
                 baseUrl = PHConfigs.SANDBOX_URL;
-            }
-            else if (request.getMerchantId().toCharArray()[0] == '2') {
+            } else if (request.getMerchantId().toCharArray()[0] == '2') {
                 bottomSheet.findViewById(R.id.debug_value).setVisibility(View.GONE);
                 baseUrl = PHConfigs.LIVE_URL;
-            }
-            else if (request.getMerchantId().toCharArray()[0] == '0')
+            } else if (request.getMerchantId().toCharArray()[0] == '0')
                 baseUrl = PHConfigs.LOCAL_URL;
         }
         PHConfigs.setBaseUrl(baseUrl);
@@ -177,21 +181,25 @@ public class PHMainActivity extends PayHereBaseActivity {
         } else
             setPayMethod();
 
-        final View backView = findViewById(R.id.main_back);
+        backView = findViewById(R.id.main_back);
 
         findViewById(R.id.layout_back).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (view == VIEW_METHOD || view == VIEW_DETAILS)
-                    sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                else if (view == VIEW_RESULT) {
-                    Intent intent = new Intent();
-                    intent.putExtra(PHConstants.INTENT_EXTRA_RESULT, statusResponse);
-                    setResult(Activity.RESULT_CANCELED, intent);
-                    sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                } else if (view != VIEW_DETAILS) {
-                    setUserCanceledError();
-                }
+
+                sheetBehavior.setPeekHeight(peekHeight, true);
+                sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+
+//                if (view == VIEW_METHOD || view == VIEW_DETAILS)
+//                    sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+//                else if (view == VIEW_RESULT) {
+//                    Intent intent = new Intent();
+//                    intent.putExtra(PHConstants.INTENT_EXTRA_RESULT, statusResponse);
+//                    setResult(Activity.RESULT_CANCELED, intent);
+//                    sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+//                } else if (view != VIEW_DETAILS) {
+//                    setUserCanceledError();
+//                }
             }
         });
 
@@ -206,37 +214,39 @@ public class PHMainActivity extends PayHereBaseActivity {
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int i) {
 
-                if(isSaveCard && view == VIEW_DETAILS && i == BottomSheetBehavior.STATE_COLLAPSED)
-                    setUserCanceledError();
-                else if(isHelapayPayment && view == VIEW_DETAILS && i == BottomSheetBehavior.STATE_COLLAPSED){
-                    setUserCanceledError();
-                }
-                else if(view == VIEW_DETAILS && i == BottomSheetBehavior.STATE_COLLAPSED)
-                {
-                    setUserCanceledError();
-
-                }
-                else if(view == VIEW_METHOD && i == BottomSheetBehavior.STATE_COLLAPSED){
-                    setUserCanceledError();
-                }
-                else{
-
-                    if (i == BottomSheetBehavior.STATE_SETTLING && (PHMainActivity.this.view != VIEW_DETAILS || isSaveCard)) {
-                        if (prevState != BottomSheetBehavior.STATE_COLLAPSED) {
-                            int colorFrom = getResources().getColor(R.color.bottom_sheet_back);
-                            int colorTo = getResources().getColor(android.R.color.transparent);
-
-                            colorFadeAnimation(backView, colorFrom, colorTo, PHMainActivity.this.view == VIEW_METHOD || PHMainActivity.this.view == VIEW_RESULT);
-                        } else {
-                            int colorFrom = getResources().getColor(android.R.color.transparent);
-                            int colorTo = getResources().getColor(R.color.bottom_sheet_back);
-                            colorFadeAnimation(backView, colorFrom, colorTo, false);
-                        }
-                    }
-
+                if (view == VIEW_METHOD && i == BottomSheetBehavior.STATE_COLLAPSED && !isMinimize) {
+                    sheetBehavior.setPeekHeight(peekHeight, true);
+                    isMinimize = true;
                 }
 
-                prevState = i;
+//                else {
+//                    if (isSaveCard && view == VIEW_DETAILS && i == BottomSheetBehavior.STATE_COLLAPSED)
+//                        setUserCanceledError();
+//                    else if (isHelapayPayment && view == VIEW_DETAILS && i == BottomSheetBehavior.STATE_COLLAPSED) {
+//                        setUserCanceledError();
+//                    } else if (view == VIEW_DETAILS && i == BottomSheetBehavior.STATE_COLLAPSED) {
+//                        setUserCanceledError();
+//                    } else if (view == VIEW_METHOD && i == BottomSheetBehavior.STATE_COLLAPSED) {
+//                        setUserCanceledError();
+//                    } else {
+//
+//                        if (i == BottomSheetBehavior.STATE_SETTLING && (PHMainActivity.this.view != VIEW_DETAILS || isSaveCard)) {
+//                            if (prevState != BottomSheetBehavior.STATE_COLLAPSED) {
+//                                int colorFrom = getResources().getColor(R.color.bottom_sheet_back);
+//                                int colorTo = getResources().getColor(android.R.color.transparent);
+//
+//                                colorFadeAnimation(backView, colorFrom, colorTo, PHMainActivity.this.view == VIEW_METHOD || PHMainActivity.this.view == VIEW_RESULT);
+//                            } else {
+//                                int colorFrom = getResources().getColor(android.R.color.transparent);
+//                                int colorTo = getResources().getColor(R.color.bottom_sheet_back);
+//                                colorFadeAnimation(backView, colorFrom, colorTo, false);
+//                            }
+//                        }
+//                    }
+//
+//                    prevState = i;
+//                }
+
                 Log.d(PHMainActivity.class.getSimpleName(), "Bottom Sheet state : " + i);
             }
 
@@ -249,7 +259,7 @@ public class PHMainActivity extends PayHereBaseActivity {
         titleBar.post(new Runnable() {
             @Override
             public void run() {
-                peekHeight = 0;//titleBar.getHeight();
+                peekHeight = titleBar.getHeight();
             }
         });
 
@@ -257,7 +267,9 @@ public class PHMainActivity extends PayHereBaseActivity {
                 .setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+//                        peekHeight = 0;
                         onBackClicked();
+//                        isMinimize = false;
                     }
                 });
 
@@ -312,15 +324,18 @@ public class PHMainActivity extends PayHereBaseActivity {
     }
 
     private void onBackClicked() {
-        if(view == VIEW_METHOD || view == VIEW_RESULT){
+        if (view == VIEW_METHOD || view == VIEW_RESULT) {
 
-            sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-        }
-        else{
+//            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            peekHeight = titleBar.getHeight();
+            finishWithBack();
+
+        } else {
             if (isSaveCard)
-                    sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                else
-                    setPayMethod();
+//                sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                finishWithBack();
+            else
+                setPayMethod();
         }
 
 //        switch (view) {
@@ -337,7 +352,31 @@ public class PHMainActivity extends PayHereBaseActivity {
 //        }
     }
 
-    public void setCloseBottomSheet(boolean val){
+    private void finishWithBack() {
+        if (isSaveCard && view == VIEW_DETAILS)
+            setUserCanceledError();
+        else if (isHelapayPayment && view == VIEW_DETAILS) {
+            setUserCanceledError();
+        } else if (view == VIEW_DETAILS) {
+            setUserCanceledError();
+        } else if (view == VIEW_METHOD) {
+            setUserCanceledError();
+        } else {
+//            if (prevState != BottomSheetBehavior.STATE_COLLAPSED) {
+            int colorFrom = getResources().getColor(R.color.bottom_sheet_back);
+            int colorTo = getResources().getColor(android.R.color.transparent);
+
+            colorFadeAnimation(backView, colorFrom, colorTo, PHMainActivity.this.view == VIEW_METHOD || PHMainActivity.this.view == VIEW_RESULT);
+//            } else {
+//                int colorFrom = getResources().getColor(android.R.color.transparent);
+//                int colorTo = getResources().getColor(R.color.bottom_sheet_back);
+//                colorFadeAnimation(backView, colorFrom, colorTo, false);
+//            }
+
+        }
+    }
+
+    public void setCloseBottomSheet(boolean val) {
         this.closeBottomSheet = val;
     }
 
@@ -347,13 +386,13 @@ public class PHMainActivity extends PayHereBaseActivity {
             public void run() {
                 viewheight = bottomSheet.findViewById(R.id.frame_main_fragment_container).getMeasuredHeight();
 //                    int titleBarHeight = titleBar.getMeasuredHeight();
-                sheetBehavior.setPeekHeight(peekHeight);
+//                sheetBehavior.setPeekHeight(peekHeight);
                 if (sheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED)
                     sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             }
         }, 250);
 
-       // imgBack.setVisibility(View.GONE);
+        // imgBack.setVisibility(View.GONE);
         txtTitle.setText(getString(R.string.pay_with_text));
         findViewById(R.id.bottom_sheet_back_icon).setVisibility(View.VISIBLE);
         view = VIEW_METHOD;
@@ -364,6 +403,7 @@ public class PHMainActivity extends PayHereBaseActivity {
         listener = fragment;
         ft.replace(R.id.frame_main_fragment_container, fragment);
         ft.commit();
+
     }
 
     public void setPayDetailsView(String title, String method) {
@@ -371,7 +411,7 @@ public class PHMainActivity extends PayHereBaseActivity {
             txtTitle.setText(getString(R.string.pay_with_card_text));
             findViewById(R.id.bottom_sheet_back_icon).setVisibility(View.VISIBLE);
             sheetBehavior.setPeekHeight(peekHeight);
-            viewheight = (int)(Utils.screenHight(this)*0.6);
+            viewheight = (int) (Utils.screenHight(this) * 0.6);
         }
 
         new Handler().postDelayed(new Runnable() {
@@ -382,8 +422,8 @@ public class PHMainActivity extends PayHereBaseActivity {
             }
         }, 250);
 
-      //  imgBack.setVisibility(View.VISIBLE);
-      //  txtTitle.setText(getString(R.string.pay_with_text));
+        //  imgBack.setVisibility(View.VISIBLE);
+        //  txtTitle.setText(getString(R.string.pay_with_text));
 
         view = VIEW_DETAILS;
 
@@ -403,29 +443,29 @@ public class PHMainActivity extends PayHereBaseActivity {
     /**
      * set details fragment for helapay method
      * set session time out time (60000*2)
-     * */
-    public void setPayDetailsView(final NewInitResponse.PaymentMethod paymentMethod,final InitBaseRequest request,final String orderKey) {
+     */
+    public void setPayDetailsView(final NewInitResponse.PaymentMethod paymentMethod, final InitBaseRequest request, final String orderKey) {
         isHelapayPayment = false;
         view = VIEW_DETAILS;
-        if(paymentMethod.getSubmissionCode().equals(PHConstants.SUMBITION_CODE_HELAPAY)){
-            isHelapayPayment= true;
+        if (paymentMethod.getSubmissionCode().equals(PHConstants.SUMBITION_CODE_HELAPAY)) {
+            isHelapayPayment = true;
             PayHereBaseActivity.DISCONNECT_TIMEOUT = DISCONNECT_TIMEOUT_HELAPAY;
             resetDisconnectTimer();
             openHelakuruIntent(paymentMethod.getSubmission().getUrl());
-           new Handler().postDelayed(new Runnable() {
-               @Override
-               public void run() {
-                   handlePaymentResponse(null,request,orderKey,true);
-               }
-           },5000);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    handlePaymentResponse(null, request, orderKey, true);
+                }
+            }, 5000);
             return;
         }
 
-        viewheight = (int) (Utils.screenHight(this) *0.6);
+        viewheight = (int) (Utils.screenHight(this) * 0.6);
         if (isSaveCard) {
-           sheetBehavior.setPeekHeight(peekHeight);
-           // viewheight = (int) (Utils.screenHight(this) *0.6);
-            Log.d(TAG,"view height " + viewheight);
+            sheetBehavior.setPeekHeight(peekHeight);
+            // viewheight = (int) (Utils.screenHight(this) *0.6);
+            Log.d(TAG, "view height " + viewheight);
             txtTitle.setText(getString(R.string.pay_with_card_text));
             findViewById(R.id.bottom_sheet_back_icon).setVisibility(View.VISIBLE);
         }
@@ -440,14 +480,13 @@ public class PHMainActivity extends PayHereBaseActivity {
 
         //  imgBack.setVisibility(View.VISIBLE);
 
-       if(Utils.getPayMethod(paymentMethod).equals(PHConstants.METHOD_CARD)) {
-           txtTitle.setText(getString(R.string.pay_with_card_text));
-           findViewById(R.id.bottom_sheet_back_icon).setVisibility(View.VISIBLE);
-       }
-       else if(Utils.getPayMethod(paymentMethod).equals(PHConstants.METHOD_OTHER)){
-           txtTitle.setText(getString(R.string.pay_with_other_text));
-           findViewById(R.id.bottom_sheet_back_icon).setVisibility(View.VISIBLE);
-       }
+        if (Utils.getPayMethod(paymentMethod).equals(PHConstants.METHOD_CARD)) {
+            txtTitle.setText(getString(R.string.pay_with_card_text));
+            findViewById(R.id.bottom_sheet_back_icon).setVisibility(View.VISIBLE);
+        } else if (Utils.getPayMethod(paymentMethod).equals(PHConstants.METHOD_OTHER)) {
+            txtTitle.setText(getString(R.string.pay_with_other_text));
+            findViewById(R.id.bottom_sheet_back_icon).setVisibility(View.VISIBLE);
+        }
 
         view = VIEW_DETAILS;
 
@@ -460,8 +499,8 @@ public class PHMainActivity extends PayHereBaseActivity {
         bundle.putString(PHConstants.INTENT_EXTRA_METHOD, paymentMethod.getSubmissionCode());
         bundle.putInt(PHConstants.INTENT_EXTRA_HEIGHT, viewheight);
         bundle.putBoolean(PHConstants.INTENT_EXTRA_AUTO, isSaveCard);
-        bundle.putSerializable(PHConstants.INTENT_EXTRA_HELA_PAY,paymentMethod.getSubmission());
-        bundle.putString(PHConstants.INTENT_EXTRA_ORDER_KEY,orderKey);
+        bundle.putSerializable(PHConstants.INTENT_EXTRA_HELA_PAY, paymentMethod.getSubmission());
+        bundle.putString(PHConstants.INTENT_EXTRA_ORDER_KEY, orderKey);
 
 
         fragment.setArguments(bundle);
@@ -470,72 +509,72 @@ public class PHMainActivity extends PayHereBaseActivity {
         ft.commit();
     }
 
-    public void setPayResultView(final PHResponse<StatusResponse> statusResponse,final boolean isAuto,final boolean isHoldCard) {
+    public void setPayResultView(final PHResponse<StatusResponse> statusResponse, final boolean isAuto, final boolean isHoldCard) {
         closeBottomSheet = true;
-       runOnUiThread(new Runnable() {
-           @Override
-           public void run() {
-               findViewById(R.id.bottom_sheet_back_icon).setVisibility(View.GONE);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                findViewById(R.id.bottom_sheet_back_icon).setVisibility(View.GONE);
 
 
-              PHMainActivity.this.statusResponse = statusResponse;
-               view = VIEW_RESULT;
-               sheetBehavior.setSkipCollapsed(true);
+                PHMainActivity.this.statusResponse = statusResponse;
+                view = VIEW_RESULT;
+                sheetBehavior.setSkipCollapsed(true);
 
-               if (!skipResult) {
-                   new Handler().postDelayed(new Runnable() {
-                       @Override
-                       public void run() {
-                           viewheight = bottomSheet.findViewById(R.id.frame_main_fragment_container).getMeasuredHeight();
-                           if (sheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
-                               sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                           }
-                       }
-                   }, 250);
-                   //  imgBack.setVisibility(View.GONE);
-
-
-                   if(statusResponse.getData().getStatus() == 3 || statusResponse.getData().getStatus() == 2){
-                       if(isAuto)
-                           txtTitle.setText(getString(R.string.label_save));
-                       else
-                           txtTitle.setText(getString(R.string.label_paid));
-                   }
-                   else
-                       txtTitle.setText(getString(R.string.label_declined));
-
-                   FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                   PaymentResultFragment fragment = new PaymentResultFragment();
-                   bundle.putLong(PHConstants.INTENT_EXTRA_REFERENCE, statusResponse != null ? statusResponse.getData().getPaymentNo() : 0L);
-                   bundle.putBoolean(PHConstants.INTENT_EXTRA_AUTO, isAuto);
-                   bundle.putBoolean(PHConstants.INTENT_EXTRA_HOLD, isHoldCard);
-                   bundle.putInt(PHConstants.INTENT_EXTRA_STATUS,statusResponse != null? statusResponse.getData().getStatus():-2);
-                   bundle.putString(PHConstants.INTENT_EXTRA_MESSAGE,statusResponse != null ? statusResponse.getData().getMessage():"");
-                   fragment.setArguments(bundle);
-                   listener = fragment;
-                   ft.replace(R.id.frame_main_fragment_container, fragment);
-                   ft.commitAllowingStateLoss();
-                  // ft.commit();
-
-                   new Handler().postDelayed(new Runnable() {
-                       @Override
-                       public void run() {
-                           if(closeBottomSheet)
-                               goBackToApp();
-                       }
-                   }, 10000);
-               } else
-                   goBackToApp();
+                if (!skipResult) {
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            viewheight = bottomSheet.findViewById(R.id.frame_main_fragment_container).getMeasuredHeight();
+                            if (sheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
+                                sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                            }
+                        }
+                    }, 250);
+                    //  imgBack.setVisibility(View.GONE);
 
 
-           }
-       });
+                    if (statusResponse.getData().getStatus() == 3 || statusResponse.getData().getStatus() == 2) {
+                        if (isAuto)
+                            txtTitle.setText(getString(R.string.label_save));
+                        else
+                            txtTitle.setText(getString(R.string.label_paid));
+                    } else
+                        txtTitle.setText(getString(R.string.label_declined));
+
+                    FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                    PaymentResultFragment fragment = new PaymentResultFragment();
+                    bundle.putLong(PHConstants.INTENT_EXTRA_REFERENCE, statusResponse != null ? statusResponse.getData().getPaymentNo() : 0L);
+                    bundle.putBoolean(PHConstants.INTENT_EXTRA_AUTO, isAuto);
+                    bundle.putBoolean(PHConstants.INTENT_EXTRA_HOLD, isHoldCard);
+                    bundle.putInt(PHConstants.INTENT_EXTRA_STATUS, statusResponse != null ? statusResponse.getData().getStatus() : -2);
+                    bundle.putString(PHConstants.INTENT_EXTRA_MESSAGE, statusResponse != null ? statusResponse.getData().getMessage() : "");
+                    fragment.setArguments(bundle);
+                    listener = fragment;
+                    ft.replace(R.id.frame_main_fragment_container, fragment);
+                    ft.commitAllowingStateLoss();
+                    // ft.commit();
+
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (closeBottomSheet)
+                                goBackToApp();
+                        }
+                    }, 10000);
+                } else
+                    goBackToApp();
+
+
+            }
+        });
 
 
     }
 
     public void goBackToApp() {
-        sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+//        sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        finishWithBack();
     }
 
     private void setUserCanceledError() {
@@ -565,8 +604,10 @@ public class PHMainActivity extends PayHereBaseActivity {
     @Override
     public void onBackPressed() {
         if (listener != null)
-            if (listener.onActivityBack())
-                sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            if (listener.onActivityBack()) {
+                finishWithBack();
+//                sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
 
     }
 
@@ -582,11 +623,11 @@ public class PHMainActivity extends PayHereBaseActivity {
 //        return methods;
 //    }
 
-    public void setMethods(HashMap<String,NewInitResponse.PaymentMethod> data){
+    public void setMethods(HashMap<String, NewInitResponse.PaymentMethod> data) {
         this.methods = data;
     }
 
-    public HashMap<String,NewInitResponse.PaymentMethod> getMethods(){
+    public HashMap<String, NewInitResponse.PaymentMethod> getMethods() {
         return this.methods;
     }
 
@@ -596,7 +637,7 @@ public class PHMainActivity extends PayHereBaseActivity {
 
 
     //check helapay success reponse
-    private void checkHelapayStatus(final String orderKey, final InitBaseRequest request){
+    private void checkHelapayStatus(final String orderKey, final InitBaseRequest request) {
 
         Executors.newSingleThreadExecutor()
                 .execute(new Runnable() {
@@ -611,7 +652,7 @@ public class PHMainActivity extends PayHereBaseActivity {
                             StatusResponse statusResponse = gson.fromJson(response, StatusResponse.class);
                             if (statusResponse != null) {
                                 System.out.println(statusResponse.toString());
-                                handlePaymentResponse(statusResponse,request,orderKey,false);
+                                handlePaymentResponse(statusResponse, request, orderKey, false);
                             }
 
                         } catch (Exception e) {
@@ -621,19 +662,17 @@ public class PHMainActivity extends PayHereBaseActivity {
                 });
     }
 
-    private void handlePaymentResponse(final StatusResponse statusResponse, final InitBaseRequest request, final String orderKey,final boolean force){
+    private void handlePaymentResponse(final StatusResponse statusResponse, final InitBaseRequest request, final String orderKey, final boolean force) {
 
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
 
 
-                if(force ||  statusResponse != null && statusResponse.getStatusState() == StatusResponse.Status.INIT
+                if (force || statusResponse != null && statusResponse.getStatusState() == StatusResponse.Status.INIT
                         && !PHMainActivity.DISCONNECTED) {
-                    checkHelapayStatus(orderKey,request);
-                }
-                else
-                {
+                    checkHelapayStatus(orderKey, request);
+                } else {
                     if (statusResponse.getStatusState() == StatusResponse.Status.SUCCESS) {
                         setPayResultView(new PHResponse(getStatusFromResponse(statusResponse), "Payment success. Check response data", statusResponse), request instanceof InitPreapprovalRequest, false);
                     } else if (statusResponse.getStatusState() == StatusResponse.Status.HOLD) {
@@ -649,19 +688,19 @@ public class PHMainActivity extends PayHereBaseActivity {
 
 
             }
-        },5000);
+        }, 5000);
 
 
     }
 
 
     private void setError(final PHResponse response, boolean finish) {
-       runOnUiThread(new Runnable() {
-           @Override
-           public void run() {
-               setPayResultView(response,false,false);
-           }
-       });
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                setPayResultView(response, false, false);
+            }
+        });
 //        Intent intent = new Intent();
 //        intent.putExtra(PHConstants.INTENT_EXTRA_RESULT, response);
 //        setResult(Activity.RESULT_CANCELED, intent);
@@ -671,13 +710,13 @@ public class PHMainActivity extends PayHereBaseActivity {
 //        }
     }
 
-    private  int getStatusFromResponse(StatusResponse lastResponse) {
+    private int getStatusFromResponse(StatusResponse lastResponse) {
         return (lastResponse.getStatusState() == StatusResponse.Status.SUCCESS) ? PHResponse.STATUS_SUCCESS : PHResponse.STATUS_ERROR_PAYMENT;
     }
 
 
     private void openHelakuruIntent(String url) {
-        Intent browserIntent  = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         browserIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(browserIntent);
     }
