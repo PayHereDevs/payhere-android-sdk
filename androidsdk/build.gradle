@@ -3,7 +3,7 @@ apply plugin: 'maven-publish'
 
 def sdk_group = "lk.payhere"
 def sdk_artifact_id = "androidsdk"
-def sdk_version = "3.0.13"
+def sdk_version = "3.0.16"
 
 android {
     compileSdk 33
