@@ -165,6 +165,7 @@ public class PHMainActivity extends PayHereBaseActivity {
         if (request != null && request.getMerchantId() != null && !request.getMerchantId().equals("")) {
             if (request.getMerchantId().toCharArray()[0] == '1') {
                 bottomSheet.findViewById(R.id.debug_value).setVisibility(View.VISIBLE);
+                request.setSandBox(true);
                 baseUrl = PHConfigs.SANDBOX_URL;
             } else if (request.getMerchantId().toCharArray()[0] == '2') {
                 bottomSheet.findViewById(R.id.debug_value).setVisibility(View.GONE);

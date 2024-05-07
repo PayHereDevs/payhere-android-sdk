@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
 //        if(((CheckBox)findViewById(R.id.m_code_check)).isChecked())
 //            req.setMerchantId("210251");
 //        else
-        req.setMerchantId("1220963"); //SANDBOX
+        req.setMerchantId("1225830"); //SANDBOX
 
         req.setOrderId("ABCDWXYZ");
         req.setCurrency("LKR");
@@ -261,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
 //        if(((CheckBox)findViewById(R.id.m_code_check)).isChecked())
 //            req.setMerchantId("210251");
 //        else
-        req.setMerchantId("1210251"); //SANDBOX
+        req.setMerchantId("1225830"); //SANDBOX
 
         req.setOrderId("ABCDWXYZ");
         req.setCurrency("LKR");

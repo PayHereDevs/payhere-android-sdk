@@ -56,17 +56,13 @@ import lk.payhere.androidsdk.model.InitRequest;
 import lk.payhere.androidsdk.model.Item;
 import lk.payhere.androidsdk.model.NewInitResponse;
 import lk.payhere.androidsdk.model.PaymentDetails;
-import lk.payhere.androidsdk.model.PaymentInitResponse;
 import lk.payhere.androidsdk.model.PaymentInitResult;
 import lk.payhere.androidsdk.model.PaymentMethodResponse;
 import lk.payhere.androidsdk.model.StatusResponse;
 import lk.payhere.androidsdk.util.NetworkHandler;
 import lk.payhere.androidsdk.util.ObservableWebView;
-import lk.payhere.androidsdk.util.ParamHandler;
-import lk.payhere.androidsdk.util.SecurityUtils;
 import lk.payhere.androidsdk.util.Utils;
 import lk.payhere.androidsdk.util.WebViewBottomSheetbehaviour;
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -276,7 +272,8 @@ public class PaymentDetailFragment extends Fragment implements PHMainActivity.On
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
-                activity.goBackToApp();
+                if(!PaymentDetailFragment.this.request.isSandBox())
+                    activity.goBackToApp();
             }
         });
 

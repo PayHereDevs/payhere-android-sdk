@@ -30,6 +30,16 @@ public class InitBaseRequest implements Serializable {
     private String currency;
     private boolean isHoldOnCardEnabled;
 
+    private boolean isSandBox;
+
+    public boolean isSandBox() {
+        return isSandBox;
+    }
+
+    public void setSandBox(boolean sandBox) {
+        isSandBox = sandBox;
+    }
+
     public String getMerchantId() {
         return merchantId;
     }
