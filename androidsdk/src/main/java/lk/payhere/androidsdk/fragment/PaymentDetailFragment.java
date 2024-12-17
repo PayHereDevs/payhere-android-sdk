@@ -28,6 +28,7 @@ import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -275,6 +276,11 @@ public class PaymentDetailFragment extends Fragment implements PHMainActivity.On
                 if(!PaymentDetailFragment.this.request.isSandBox())
                     activity.goBackToApp();
             }
+
+            @Override
+            public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+                super.onReceivedHttpError(view, request, errorResponse);
+            }
         });
 
         webView.setOnScrollChangedCallback(new ObservableWebView.OnScrollChangedCallback() {
@@ -334,10 +340,23 @@ public class PaymentDetailFragment extends Fragment implements PHMainActivity.On
                 return;
             }
 
-            webView.loadUrl(url);
+            if("JUSTPAY".equals(method)){
+                load(url);
+            }
+            else
+                webView.loadUrl(url);
         } else {
             setError(new PHResponse(PHResponse.STATUS_ERROR_VALIDATION, validate), true);
         }
+    }
+
+    private void load(String url){
+        String html = "<html>" +
+                "<body>" +
+                "<iframe src='"+url+"' width='100%' height='100%'></iframe>" +
+                "</body>" +
+                "</html>";
+        webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
     }
 
     @Override
