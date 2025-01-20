@@ -273,8 +273,34 @@ public class PaymentDetailFragment extends Fragment implements PHMainActivity.On
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
-                if(!PaymentDetailFragment.this.request.isSandBox())
+
+
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if("net::ERR_BLOCKED_BY_ORB".contains(error.getDescription())){
+                        view.loadUrl(formatUrl(request.getUrl().toString()));
+                        return;
+                    }
+
+                }
+
+                if (!PaymentDetailFragment.this.request.isSandBox())
                     activity.goBackToApp();
+            }
+
+            @Override
+            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+
+//
+                if("net::ERR_BLOCKED_BY_ORB".contains(description)){
+                        view.loadUrl(formatUrl(failingUrl));
+                        return;
+                }
+
+
+                if (!PaymentDetailFragment.this.request.isSandBox())
+                    activity.goBackToApp();
+
             }
 
             @Override
@@ -340,23 +366,24 @@ public class PaymentDetailFragment extends Fragment implements PHMainActivity.On
                 return;
             }
 
-            if("JUSTPAY".equals(method)){
-                load(url);
-            }
-            else
-                webView.loadUrl(url);
-        } else {
+//            if("JUSTPAY".equals(method)){
+                   // load(url);
+//            }
+//            else
+         webView.loadUrl(url);
+        }
+        else {
             setError(new PHResponse(PHResponse.STATUS_ERROR_VALIDATION, validate), true);
         }
     }
 
-    private void load(String url){
-        String html = "<html>" +
+    private String formatUrl(String url){
+        return "<html>" +
                 "<body>" +
                 "<iframe src='"+url+"' width='100%' height='100%'></iframe>" +
                 "</body>" +
                 "</html>";
-        webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
+       // webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
     }
 
     @Override
