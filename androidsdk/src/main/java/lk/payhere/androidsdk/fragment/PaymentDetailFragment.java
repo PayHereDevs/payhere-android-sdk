@@ -274,32 +274,49 @@ public class PaymentDetailFragment extends Fragment implements PHMainActivity.On
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
 
-
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    if (!request.isForMainFrame()) {
+                        Log.d(TAG, "Ignored background resource error.");
+                        return;
+                    }
+                }
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if("net::ERR_BLOCKED_BY_ORB".contains(error.getDescription())){
+                    if( error.getDescription() != null && "net::ERR_BLOCKED_BY_ORB".contains(error.getDescription())){
                         view.loadUrl(formatUrl(request.getUrl().toString()));
                         return;
                     }
 
                 }
 
-                if (!PaymentDetailFragment.this.request.isSandBox())
-                    activity.goBackToApp();
+//                if (!PaymentDetailFragment.this.request.isSandBox())
+//                    activity.goBackToApp();
+
+                if (PaymentDetailFragment.this.request != null && !PaymentDetailFragment.this.request.isSandBox()) {
+                    if (activity != null && !activity.isFinishing()) {
+                        activity.goBackToApp();
+                    }
+                }
             }
 
             @Override
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
 
 //
-                if("net::ERR_BLOCKED_BY_ORB".contains(description)){
+                if(description != null && "net::ERR_BLOCKED_BY_ORB".contains(description)){
                         view.loadUrl(formatUrl(failingUrl));
                         return;
                 }
 
 
-                if (!PaymentDetailFragment.this.request.isSandBox())
-                    activity.goBackToApp();
+//                if (!PaymentDetailFragment.this.request.isSandBox())
+//                    activity.goBackToApp();
+
+                if (PaymentDetailFragment.this.request != null && !PaymentDetailFragment.this.request.isSandBox()) {
+                    if (activity != null && !activity.isFinishing()) {
+                        activity.goBackToApp();
+                    }
+                }
 
             }
 
@@ -667,9 +684,9 @@ public class PaymentDetailFragment extends Fragment implements PHMainActivity.On
             paymentDetails.setNotifyUrl(request.getNotifyUrl() == null ? PHConstants.dummyUrl : request.getNotifyUrl());
 
             paymentDetails.setPlatform(PHConstants.PLATFORM);
-            if (BuildConfig.DEBUG)
-                paymentDetails.setReferer("lk.bhasha.helakuru");
-            else
+//            if (BuildConfig.DEBUG)
+//                paymentDetails.setReferer("lk.bhasha.helakuru");
+//            else
                 paymentDetails.setReferer(activity.getPackageName());
             paymentDetails.setHash("");
 
