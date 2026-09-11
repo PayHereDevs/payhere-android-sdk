@@ -28,6 +28,7 @@ public class PaymentResultFragment extends Fragment implements PHMainActivity.On
 
     private PHMainActivity activity;
     private boolean isAuto = false;
+    private boolean showRetryButton = true;
 
     @Override
     public void onCreate( Bundle savedInstanceState) {
@@ -55,6 +56,7 @@ public class PaymentResultFragment extends Fragment implements PHMainActivity.On
             isHoldOnCard = getArguments().getBoolean(PHConstants.INTENT_EXTRA_HOLD);
             status = getArguments().getInt(PHConstants.INTENT_EXTRA_STATUS);
             message = getArguments().getString(PHConstants.INTENT_EXTRA_MESSAGE);
+            showRetryButton = getArguments().getBoolean(PHConstants.INTENT_EXTRA_SHOW_RETRY_WHEN_FAILED,true);
         }
 
         final View view;
@@ -123,7 +125,9 @@ public class PaymentResultFragment extends Fragment implements PHMainActivity.On
                 txtReference.setText("Payment Error");
             }
 
-            retryBtn.setVisibility(View.VISIBLE);
+
+
+            retryBtn.setVisibility(showRetryButton ? View.VISIBLE : View.GONE);
             ((TextView)view.findViewById(R.id.done_txt)).setText("Cancel");
 
         }

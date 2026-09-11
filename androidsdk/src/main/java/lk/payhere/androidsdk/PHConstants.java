@@ -41,4 +41,7 @@ public class PHConstants {
     public static final String METHOD_OTHER = "OTHER";
 
     public static final String SUMBITION_CODE_HELAPAY = "HELAPAY";
+
+    public static final String INTENT_EXTRA_SHOW_RETRY_WHEN_FAILED = "SHOW_RETRY_WHEN_FAILED";
+
 }

@@ -81,6 +81,9 @@ public class PHMainActivity extends PayHereBaseActivity {
 
     private View titleBar ,backView;
 
+    private boolean showRetryButton = true;
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,6 +96,10 @@ public class PHMainActivity extends PayHereBaseActivity {
             intent.putExtra(PHConstants.INTENT_EXTRA_RESULT, response);
             setResult(Activity.RESULT_CANCELED, intent);
             sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        }
+
+        if(getIntent().hasExtra(PHConstants.INTENT_EXTRA_SHOW_RETRY_WHEN_FAILED)){
+            showRetryButton = getIntent().getBooleanExtra(PHConstants.INTENT_EXTRA_SHOW_RETRY_WHEN_FAILED, true);
         }
 
         if (getIntent().hasExtra(PHConstants.INTENT_EXTRA_SKIP_RESULT)) {
@@ -550,6 +557,7 @@ public class PHMainActivity extends PayHereBaseActivity {
                     bundle.putBoolean(PHConstants.INTENT_EXTRA_HOLD, isHoldCard);
                     bundle.putInt(PHConstants.INTENT_EXTRA_STATUS, statusResponse != null ? statusResponse.getData().getStatus() : -2);
                     bundle.putString(PHConstants.INTENT_EXTRA_MESSAGE, statusResponse != null ? statusResponse.getData().getMessage() : "");
+                    bundle.putBoolean(PHConstants.INTENT_EXTRA_SHOW_RETRY_WHEN_FAILED,showRetryButton);
                     fragment.setArguments(bundle);
                     listener = fragment;
                     ft.replace(R.id.frame_main_fragment_container, fragment);
