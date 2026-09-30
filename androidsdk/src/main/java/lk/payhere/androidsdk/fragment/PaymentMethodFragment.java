@@ -1,5 +1,7 @@
 package lk.payhere.androidsdk.fragment;
 
+import static lk.payhere.androidsdk.PHConstants.PRE_APPROVAL_SUPPORT_METHODS;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -217,9 +219,9 @@ MethodAdapter.OnPaymentMethodClick{
             paymentDetails.setNotifyUrl(request.getNotifyUrl() == null ? PHConstants.dummyUrl : request.getNotifyUrl());
 
             paymentDetails.setPlatform(PHConstants.PLATFORM);
-            if (BuildConfig.DEBUG)
-                paymentDetails.setReferer("lk.bhasha.helakuru");
-            else
+//            if (BuildConfig.DEBUG)
+//                paymentDetails.setReferer("lk.bhasha.helakuru");
+//            else
                 paymentDetails.setReferer(activity.getPackageName());
             paymentDetails.setHash("");
 
@@ -297,7 +299,21 @@ MethodAdapter.OnPaymentMethodClick{
 
             orderKey = data.getOrder().getOrderKey();
             HashMap<String,NewInitResponse.PaymentMethod> methods = new HashMap<>();
+
+            boolean isPreApproval = request instanceof InitPreapprovalRequest;
+
             for(NewInitResponse.PaymentMethod method : data.getPaymentMethods()){
+
+                if(isPreApproval){
+                    if(isSupportPreApproval(method.getMethod()))
+                    {
+                        //Log.d(TAG,"Method not supported : " + method.getMethod());
+                        methods.put(method.getMethod(),method);
+                        cardList.add(method);
+                    }
+                    continue;
+                }
+
                 methods.put(method.getMethod(),method);
                 if(method.getSubmissionCode().toUpperCase().equals("MASTER") || method.getSubmissionCode().toUpperCase().equals("VISA")
                         || method.getSubmissionCode().toUpperCase().equals("AMEX")){
@@ -388,4 +404,9 @@ MethodAdapter.OnPaymentMethodClick{
     public void onclick(NewInitResponse.PaymentMethod paymentMethod) {
         activity.setPayDetailsView(paymentMethod,request, orderKey);
     }
+
+    private boolean isSupportPreApproval(String method){
+        return PRE_APPROVAL_SUPPORT_METHODS.contains(method.toUpperCase());
+    }
+
 }

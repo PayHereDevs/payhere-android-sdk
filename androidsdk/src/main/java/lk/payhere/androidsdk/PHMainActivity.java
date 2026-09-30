@@ -182,11 +182,12 @@ public class PHMainActivity extends PayHereBaseActivity {
         }
         PHConfigs.setBaseUrl(baseUrl);
 
-        if (isSaveCard) {
-//            String method = PHConfigs.BASE_URL.equals(PHConfigs.SANDBOX_URL) ? "TEST" : "VISA";
-            String method = "VISA";
-            setPayDetailsView("CREDIT / DEBIT CARD", method);
-        } else
+//        if (isSaveCard) {
+////            String method = PHConfigs.BASE_URL.equals(PHConfigs.SANDBOX_URL) ? "TEST" : "VISA";
+//            String method = "VISA";
+//            setPayDetailsView("CREDIT / DEBIT CARD", method);
+//        } else
+
             setPayMethod();
 
         backView = findViewById(R.id.main_back);

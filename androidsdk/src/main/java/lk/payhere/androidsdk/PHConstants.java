@@ -1,6 +1,7 @@
 package lk.payhere.androidsdk;
 
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * Created by chamika on 9/18/16.
@@ -43,5 +44,7 @@ public class PHConstants {
     public static final String SUMBITION_CODE_HELAPAY = "HELAPAY";
 
     public static final String INTENT_EXTRA_SHOW_RETRY_WHEN_FAILED = "SHOW_RETRY_WHEN_FAILED";
+
+    public static final Set<String> PRE_APPROVAL_SUPPORT_METHODS = Set.of("VISA","MASTER","AMEX");
 
 }
